@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'koneksi.php'; 
+include 'koneksi.php';
 
 if (!isset($_SESSION['Username'])) {
     header('Location: login.php');
@@ -64,6 +64,10 @@ if (isset($_POST['submit'])) {
     } else {
         echo "";
     }
+
+
+
+    
 }
 
 $sql = "SELECT f.FotoID, f.JudulFoto, f.DeskripsiFoto, f.TanggalUnggah, a.NamaAlbum, u.NamaLengkap, f.LokasiFoto, COUNT(k.KomentarID) AS JumlahKomentar, COUNT(l.LikeID) AS JumlahLike
@@ -78,10 +82,19 @@ $result = $con->query($sql);
 
 $albumQuery = "SELECT * FROM album";
 $albumResult = mysqli_query($con, $albumQuery);
+$statsQuery = "SELECT 
+(SELECT COUNT(*) FROM foto) as total_photos,
+(SELECT COUNT(*) FROM album) as total_albums,
+(SELECT COUNT(*) FROM likefoto) as total_likes,
+(SELECT COUNT(*) FROM komentarfoto) as total_comments";
+
+$statsResult = mysqli_query($con, $statsQuery);
+$stats = mysqli_fetch_assoc($statsResult);
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -92,31 +105,39 @@ $albumResult = mysqli_query($con, $albumQuery);
         .photo-card {
             transition: transform 0.2s;
         }
+
         .photo-card:hover {
             transform: translateY(-5px);
         }
+
         .custom-scrollbar::-webkit-scrollbar {
             width: 8px;
         }
+
         .custom-scrollbar::-webkit-scrollbar-track {
             background: #2d3748;
         }
+
         .custom-scrollbar::-webkit-scrollbar-thumb {
             background: #4a5568;
             border-radius: 4px;
         }
+
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: #718096;
         }
+
         .modal {
             transition: opacity 0.3s ease-in-out;
         }
+
         .grid-mask {
             background-image: radial-gradient(#4a5568 1px, transparent 1px);
             background-size: 20px 20px;
         }
     </style>
 </head>
+
 <body class="bg-gray-900 text-gray-100 min-h-screen grid-mask">
     <!-- Navigation -->
     <nav class="bg-gray-800 shadow-lg">
@@ -124,15 +145,10 @@ $albumResult = mysqli_query($con, $albumQuery);
             <div class="flex justify-between items-center py-4">
                 <div class="flex items-center space-x-4">
                     <i class="fas fa-camera-retro text-2xl text-blue-400"></i>
-                    <span class="text-xl font-bold">Photo Gallery</span>
+                    <span class="text-xl font-bold">Gammaz</span>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <button class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg flex items-center space-x-2">
-                        <i class="fas fa-plus"></i>
-                        <span>New Upload</span>
-                    </button>
                     <div class="flex items-center space-x-2">
-                        <img src="/api/placeholder/32/32" class="rounded-full" alt="Welcome,">
                         <span><?php echo $_SESSION['Username']; ?></span>
                         <a href="logout.php" class="text-red-400 hover:text-red-300">
                             <i class="fas fa-sign-out-alt"></i>
@@ -151,7 +167,7 @@ $albumResult = mysqli_query($con, $albumQuery);
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-gray-400">Total Photos</p>
-                        <h3 class="text-2xl font-bold">2,451</h3>
+                        <h3 class="text-2xl font-bold"><?php echo number_format($stats['total_photos']); ?></h3>
                     </div>
                     <i class="fas fa-images text-blue-400 text-3xl"></i>
                 </div>
@@ -160,7 +176,7 @@ $albumResult = mysqli_query($con, $albumQuery);
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-gray-400">Total Albums</p>
-                        <h3 class="text-2xl font-bold">18</h3>
+                        <h3 class="text-2xl font-bold"><?php echo number_format($stats['total_albums']); ?></h3>
                     </div>
                     <i class="fas fa-folder text-yellow-400 text-3xl"></i>
                 </div>
@@ -169,7 +185,7 @@ $albumResult = mysqli_query($con, $albumQuery);
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-gray-400">Total Likes</p>
-                        <h3 class="text-2xl font-bold">12.3K</h3>
+                        <h3 class="text-2xl font-bold"><?php echo number_format($stats['total_likes']); ?></h3>
                     </div>
                     <i class="fas fa-heart text-red-400 text-3xl"></i>
                 </div>
@@ -178,7 +194,7 @@ $albumResult = mysqli_query($con, $albumQuery);
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-gray-400">Comments</p>
-                        <h3 class="text-2xl font-bold">5,234</h3>
+                        <h3 class="text-2xl font-bold"><?php echo number_format($stats['total_comments']); ?></h3>
                     </div>
                     <i class="fas fa-comments text-green-400 text-3xl"></i>
                 </div>
@@ -259,7 +275,7 @@ $albumResult = mysqli_query($con, $albumQuery);
                         <?php
                         if ($result->num_rows > 0) {
                             $no = 1;
-                            while($row = $result->fetch_assoc()) {
+                            while ($row = $result->fetch_assoc()) {
                                 echo "<tr class='hover:bg-gray-700'>";
                                 echo "<td class='px-4 py-3'>" . $no++ . "</td>";
                                 echo "<td class='px-4 py-3'><img src='uploads/" . $row["LokasiFoto"] . "' class='w-16 h-16 object-cover rounded-lg'></td>";
@@ -275,12 +291,12 @@ $albumResult = mysqli_query($con, $albumQuery);
                                      </td>";
                                 echo "<td class='px-4 py-3'>
                                         <div class='flex space-x-2'>
-                                            <button class='bg-yellow-500 hover:bg-yellow-600 p-2 rounded-lg' title='Edit'>
-                                                <i class='fas fa-edit'></i>
-                                            </button>
-                                            <button class='bg-red-500 hover:bg-red-600 p-2 rounded-lg' title='Delete'>
-                                                <i class='fas fa-trash-alt'></i>
-                                            </button>
+                                            <a href='edit.php?id=" . $row['FotoID'] . "' class='bg-yellow-500 hover:bg-yellow-600 p-2 rounded-lg' title='Edit'>
+                                             <i class='fas fa-edit'></i>
+                                            </a>
+                                           <a href='delete.php?id=" . $row['FotoID'] . "' class='bg-red-500 hover:bg-yellow-600 p-2 rounded-lg' title='Edit'>
+                                             <i class='fas fa-trash-alt'></i>
+                                             </a>
                                         </div>
                                      </td>";
                                 echo "</tr>";
@@ -295,4 +311,5 @@ $albumResult = mysqli_query($con, $albumQuery);
         </div>
     </div>
 </body>
+
 </html>
